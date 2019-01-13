@@ -1,40 +1,41 @@
 package com.arctouch.codechallenge.home
 
-import android.content.Intent
-import com.arctouch.codechallenge.api.Api
-import com.arctouch.codechallenge.api.TmdbApi
 import com.arctouch.codechallenge.data.Cache
 import com.arctouch.codechallenge.model.Movie
+import com.arctouch.codechallenge.repositories.IMovieRepository
 import io.reactivex.BackpressureStrategy
 import io.reactivex.android.schedulers.AndroidSchedulers
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.processors.PublishProcessor
 import io.reactivex.schedulers.Schedulers
 import java.util.*
 import kotlin.collections.ArrayList
 
-class HomePresenter(val view: View) {
+class HomePresenter(val view: HomeContract.View, val moviesRepository: IMovieRepository) : HomeContract {
 
     var page: Long = 1
     var pub = PublishProcessor.create<Long>()
-    lateinit var movieList:ArrayList<Movie>
+    val compositeDisposable = CompositeDisposable()
 
-    fun start() {
+    override var movieList:ArrayList<Movie> = arrayListOf()
+
+    override fun loadData() {
 
         view.showProgressBar()
 
         if (Cache.genres.isEmpty())
             loadGenres()
         else {
-            if (movieList?.isEmpty())
+            if (movieList.isEmpty())
                 loadMovies()
             else
                 setAdapter()
         }
     }
 
-    fun loadMovies() {
+    private fun loadMovies() {
 
-            Api.mbdApi.upcomingMovies(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE, page, TmdbApi.DEFAULT_REGION)
+        val disposable = moviesRepository.getMovies(page)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
@@ -45,40 +46,34 @@ class HomePresenter(val view: View) {
 
                     setAdapter()
                 }
-
+        compositeDisposable.add(disposable)
         //pub.onNext(1)
     }
 
-    fun setAdapter() {
-        val homeAdapter = HomeAdapter(movieList)
-        view.setAdapter(homeAdapter)
+    private fun setAdapter() {
+            val homeAdapter = HomeAdapter(movieList)
+            view.setAdapter(homeAdapter)
 
-        homeAdapter.onItemClick = {
-            view.onClick(it)
-        }
-
+            homeAdapter.onItemClick = {
+                view.onClick(it)
+            }
         view.hideProgressBar()
     }
 
-    fun loadGenres() {
-        Api.mbdApi.genres(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE)
+   private fun loadGenres() {
+          val disposable = moviesRepository.getGenres()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
                     Cache.cacheGenres(it.genres)
                     loadMovies()
                 }
+
+        compositeDisposable.add(disposable)
     }
 
-    fun stop() {
-
-    }
-
-    interface View {
-        fun showProgressBar()
-        fun hideProgressBar()
-        fun setAdapter(homeAdapter: HomeAdapter)
-        fun onClick(movie : Movie)
+    override fun dispose() {
+        compositeDisposable.dispose()
     }
 
 }

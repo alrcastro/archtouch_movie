@@ -3,9 +3,9 @@ package com.arctouch.codechallenge.details
 import com.arctouch.codechallenge.model.Movie
 import com.arctouch.codechallenge.util.MovieImageUrlBuilder
 
-class DetailsPresenter (val view: View, val movie : Movie?) {
+class DetailsPresenter (val view: DetailsContract.View, val movie : Movie?) : DetailsContract {
 
-    fun start() {
+    override fun loadData() {
         movie?.let{
             view.populateFields(it)
             val movieImageUrlBuilder = MovieImageUrlBuilder()
@@ -13,10 +13,5 @@ class DetailsPresenter (val view: View, val movie : Movie?) {
             val backDropPath = movie.backdropPath?.let { movieImageUrlBuilder.buildPosterUrl(it) };
             view.loadImages(backDropPath,posterPath)
         }
-    }
-
-    interface View {
-        fun populateFields(movie: Movie)
-        fun loadImages(backDrop: String?, poster: String?)
     }
 }

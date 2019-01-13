@@ -9,22 +9,22 @@ import com.arctouch.codechallenge.R
 import com.arctouch.codechallenge.model.Movie
 import com.arctouch.codechallenge.util.Constants
 import kotlinx.android.synthetic.main.home_activity.*
-import io.reactivex.processors.PublishProcessor
 
 
-class HomeActivity : AppCompatActivity(), HomePresenter.View {
 
-    lateinit var presenter : HomePresenter
+class HomeActivity : AppCompatActivity(), HomeContract.View {
 
-    var pub = PublishProcessor.create<Long>()
+    lateinit var presenter : HomeContract
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home_activity)
-        presenter = HomePresenter(this)
+        presenter = HomePresenterFactory.createPresenter(this)
+
         if (savedInstanceState?.get("list") != null)
             presenter.movieList = savedInstanceState.get("list") as ArrayList<Movie>
-        presenter.start()
+
+        presenter.loadData()
 
     }
 
@@ -34,7 +34,7 @@ class HomeActivity : AppCompatActivity(), HomePresenter.View {
     }
 
     override fun onClick(movie : Movie) {
-        var intent = Intent(this, DetailsActivity::class.java)
+        val intent = Intent(this, DetailsActivity::class.java)
         intent.putExtra(Constants.MOVIE, movie)
         startActivity(intent)
     }
@@ -48,9 +48,12 @@ class HomeActivity : AppCompatActivity(), HomePresenter.View {
     }
 
     override fun hideProgressBar() {
-
         progressBar.visibility = View.GONE
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        presenter.dispose()
+    }
 
 }
