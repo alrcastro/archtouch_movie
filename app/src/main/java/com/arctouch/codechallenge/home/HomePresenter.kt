@@ -10,46 +10,58 @@ import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.processors.PublishProcessor
 import io.reactivex.schedulers.Schedulers
 import java.util.*
+import kotlin.collections.ArrayList
 
-class HomePresenter(val view: View, val api : TmdbApi) {
+class HomePresenter(val view: View) {
 
     var page: Long = 1
     var pub = PublishProcessor.create<Long>()
+    lateinit var movieList:ArrayList<Movie>
 
     fun start() {
 
         view.showProgressBar()
 
-        if (Cache.genres.count() == 0)
+        if (Cache.genres.isEmpty())
             loadGenres()
-        else
-            loadMovies()
+        else {
+            if (movieList?.isEmpty())
+                loadMovies()
+            else
+                setAdapter()
+        }
     }
 
     fun loadMovies() {
 
-            Api.mbdApi.upcomingMovies(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE, page, TmdbApi.DEFAULT_REGION).toFlowable(BackpressureStrategy.DROP)
+            Api.mbdApi.upcomingMovies(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE, page, TmdbApi.DEFAULT_REGION)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
                     val moviesWithGenres = it.results.map { movie ->
                         movie.copy(genres = Cache.genres.filter { movie.genreIds?.contains(it.id) == true })
                     }
-                    val homeAdapter = HomeAdapter(moviesWithGenres)
-                    view.setAdapter(homeAdapter)
+                    movieList = moviesWithGenres.toCollection(ArrayList())
 
-                    homeAdapter.onItemClick = {
-                        view.onClick(it)
-                    }
-
-                    view.hideProgressBar()
+                    setAdapter()
                 }
 
         //pub.onNext(1)
     }
 
+    fun setAdapter() {
+        val homeAdapter = HomeAdapter(movieList)
+        view.setAdapter(homeAdapter)
+
+        homeAdapter.onItemClick = {
+            view.onClick(it)
+        }
+
+        view.hideProgressBar()
+    }
+
     fun loadGenres() {
-        api.genres(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE)
+        Api.mbdApi.genres(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
