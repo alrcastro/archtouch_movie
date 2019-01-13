@@ -13,9 +13,17 @@ import kotlinx.android.synthetic.main.movie_item.view.*
 
 class HomeAdapter(private val movies: List<Movie>) : RecyclerView.Adapter<HomeAdapter.ViewHolder>() {
 
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    var onItemClick: ((Movie) -> Unit)? = null
+
+    inner class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
         private val movieImageUrlBuilder = MovieImageUrlBuilder()
+
+        init {
+            itemView.setOnClickListener {
+                onItemClick?.invoke(movies[adapterPosition])
+            }
+        }
 
         fun bind(movie: Movie) {
             itemView.titleTextView.text = movie.title

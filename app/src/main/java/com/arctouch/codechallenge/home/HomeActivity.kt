@@ -1,30 +1,49 @@
 package com.arctouch.codechallenge.home
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import com.arctouch.codechallenge.details.DetailsActivity
 import com.arctouch.codechallenge.R
-import com.arctouch.codechallenge.api.TmdbApi
 import com.arctouch.codechallenge.base.BaseActivity
-import com.arctouch.codechallenge.data.Cache
-import io.reactivex.android.schedulers.AndroidSchedulers
-import io.reactivex.schedulers.Schedulers
+import com.arctouch.codechallenge.model.Movie
+import com.arctouch.codechallenge.util.Constants
 import kotlinx.android.synthetic.main.home_activity.*
+import io.reactivex.processors.PublishProcessor
 
-class HomeActivity : BaseActivity() {
+
+class HomeActivity : BaseActivity(), HomePresenter.View {
+
+    lateinit var presenter : HomePresenter
+
+    var pub = PublishProcessor.create<Long>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.home_activity)
 
-        api.upcomingMovies(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE, 1, TmdbApi.DEFAULT_REGION)
-            .subscribeOn(Schedulers.io())
-            .observeOn(AndroidSchedulers.mainThread())
-            .subscribe {
-                val moviesWithGenres = it.results.map { movie ->
-                    movie.copy(genres = Cache.genres.filter { movie.genreIds?.contains(it.id) == true })
-                }
-                recyclerView.adapter = HomeAdapter(moviesWithGenres)
-                progressBar.visibility = View.GONE
-            }
+        presenter = HomePresenter(this, api)
+        presenter.start()
+
     }
+    override fun onClick(movie : Movie) {
+        var intent = Intent(this, DetailsActivity::class.java)
+        intent.putExtra(Constants.MOVIE, movie)
+        startActivity(intent)
+    }
+
+    override fun setAdapter(homeAdapter: HomeAdapter) {
+        recyclerView.adapter = homeAdapter
+    }
+
+    override fun showProgressBar() {
+        progressBar.visibility = View.VISIBLE
+    }
+
+    override fun hideProgressBar() {
+
+        progressBar.visibility = View.GONE
+    }
+
+
 }
