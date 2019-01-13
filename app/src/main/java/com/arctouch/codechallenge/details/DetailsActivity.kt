@@ -12,6 +12,8 @@ import com.arctouch.codechallenge.util.MovieImageUrlBuilder
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import kotlinx.android.synthetic.main.movie_item.view.*
+import java.text.DateFormat
+import java.text.SimpleDateFormat
 
 
 class DetailsActivity : AppCompatActivity(), DetailsPresenter.View {
@@ -21,7 +23,7 @@ class DetailsActivity : AppCompatActivity(), DetailsPresenter.View {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_details)
-        setSupportActionBar(toolbar)
+        //setSupportActionBar(toolbar)
 
         val movie = intent.extras.getSerializable(Constants.MOVIE) as? Movie
 
@@ -31,10 +33,18 @@ class DetailsActivity : AppCompatActivity(), DetailsPresenter.View {
     }
 
     override fun populateFields(movie : Movie) {
-       txtName.text = movie.title
+        toolbar.title = movie.title
+
+        txtName.text = movie.title
         txtOverview.text = movie.overview
         txtGenreList.text = movie.genres?.joinToString(separator = ",") { it.name }
-        txtReleaseDate.text = movie.releaseDate
+
+        // Convertendo a data
+        val fmt = SimpleDateFormat("yyyy-MM-dd")
+        val dt = fmt.parse( movie.releaseDate)
+        var dateFormat = android.text.format.DateFormat.getDateFormat(this)
+
+        txtReleaseDate.text = dateFormat.format(dt)
     }
 
     override fun loadImages(backDrop: String?, poster: String?) {

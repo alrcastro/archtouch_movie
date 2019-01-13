@@ -1,6 +1,7 @@
 package com.arctouch.codechallenge.home
 
 import android.content.Intent
+import com.arctouch.codechallenge.api.Api
 import com.arctouch.codechallenge.api.TmdbApi
 import com.arctouch.codechallenge.data.Cache
 import com.arctouch.codechallenge.model.Movie
@@ -27,7 +28,7 @@ class HomePresenter(val view: View, val api : TmdbApi) {
 
     fun loadMovies() {
 
-         api.upcomingMovies(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE, page, TmdbApi.DEFAULT_REGION).toFlowable(BackpressureStrategy.DROP)
+            Api.mbdApi.upcomingMovies(TmdbApi.API_KEY, TmdbApi.DEFAULT_LANGUAGE, page, TmdbApi.DEFAULT_REGION).toFlowable(BackpressureStrategy.DROP)
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
