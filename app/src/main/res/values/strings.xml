@@ -1,4 +1,9 @@
 <resources>
     <string name="app_name">Code Challenge</string>
     <string name="movie_and_genres">%s - %s</string>
+    <string name="title_activity_details">DetailsActivity</string>
+    <string name="title">Title</string>
+    <string name="release">Release</string>
+    <string name="genres">Genres</string>
+    <string name="description">Description</string>
 </resources>
