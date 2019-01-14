@@ -11,7 +11,7 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import kotlinx.android.synthetic.main.movie_item.view.*
 
-class HomeAdapter(private val movies: List<Movie>) : RecyclerView.Adapter<HomeAdapter.ViewHolder>() {
+class HomeAdapter(private val movies: ArrayList<Movie>) : RecyclerView.Adapter<HomeAdapter.ViewHolder>() {
 
     var onItemClick: ((Movie) -> Unit)? = null
 
@@ -35,6 +35,10 @@ class HomeAdapter(private val movies: List<Movie>) : RecyclerView.Adapter<HomeAd
                 .apply(RequestOptions().placeholder(R.drawable.ic_image_placeholder))
                 .into(itemView.posterImageView)
         }
+    }
+
+    fun addItens(movieList: List<Movie>){
+        movies.addAll(movieList)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
